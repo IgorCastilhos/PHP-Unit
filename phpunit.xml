@@ -9,4 +9,10 @@
             <directory suffix="Test.php">test/Service</directory>
         </testsuite>
     </testsuites>
+    <coverage>
+        <report>
+            <html outputDirectory="_coverage"/>
+            <text outputFile="php://stdout"/>
+        </report>
+    </coverage>
 </phpunit>
