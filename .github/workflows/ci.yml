@@ -11,5 +11,16 @@ jobs:
 
       - uses: php-actions/composer@v6
 
+      - name: PHPUnit Tests
+        uses: php-actions/phpunit@v4
+        env:
+          TEST_NAME: Scarlett
+        with:
+          version: 'composer'
+          php_version: 8.3
+          bootstrap: vendor/autoload.php
+          configuration: phpunit.xml
+          args: --coverage-text
+
       - name: Run PHPUnit Tests with Coverage
         run: vendor/bin/phpunit --coverage-text --coverage-html=_coverage
