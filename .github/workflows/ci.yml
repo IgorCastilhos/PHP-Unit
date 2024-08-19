@@ -1,37 +1,60 @@
-name: PHPUnit (php-actions)
+name: tests
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+      - '*.x'
 
 jobs:
-  build-test:
+  linux_tests:
     runs-on: ubuntu-22.04
 
-    steps:
-      - uses: actions/checkout@v3
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.2, 8.3]
+        phpunit: ['10.5', '11.0.1']
+        stability: [prefer-lowest, prefer-stable]
 
-      - name: Setup PHP with PECL extension
+    name: PHP ${{ matrix.php }} - PHPUnit ${{ matrix.phpunit }} - ${{ matrix.stability }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, gd, redis, igbinary, msgpack, lzf, zstd, lz4, memcached, gmp, :php-psr
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
 
-      - uses: php-actions/composer@v6
+      - name: Set Framework version
+        run: composer config version "11.x-dev"
+
+      - name: Set minimum PHP 8.2 versions
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: composer require guzzlehttp/psr7:^2.4 --no-interaction --no-update
+
+      - name: Set PHPUnit
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: composer require phpunit/phpunit:^${{ matrix.phpunit }} --dev --no-interaction --no-update
 
       - name: Install dependencies
-        run: composer install
-
-      - name: Run PHPUnit tests
-        run: vendor/bin/phpunit --configuration phpunit.xml
-
-      - name: PHPUnit Tests
-        uses: php-actions/phpunit@v4
-        env:
-          TEST_NAME: Scarlett
+        uses: nick-fields/retry@v3
         with:
-          version: 'composer'
-          php_version: 8.3
-          bootstrap: vendor/autoload.php
-          configuration: phpunit.xml
-          args: --coverage-text
+          timeout_minutes: 5
+          max_attempts: 5
+          command: composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress
 
-      - name: Run PHPUnit Tests with Coverage
-        run: vendor/bin/phpunit --coverage-text --coverage-html=_coverage
+      - name: Execute tests
+        run: vendor/bin/phpunit --display-deprecation
