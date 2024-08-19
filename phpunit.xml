@@ -1,18 +1,31 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.0/phpunit.xsd"
-         colors="true"
-         bootstrap="vendor/autoload.php">
-
+<phpunit
+        bootstrap="vendor/autoload.php"
+        colors="true"
+        stopOnFailure="true"
+>
     <testsuites>
         <testsuite name="unit">
-            <directory suffix="Test.php">test/Service</directory>
+            <directory>tests/unit</directory>
+        </testsuite>
+
+        <testsuite name="integration">
+            <directory>tests/integration</directory>
         </testsuite>
     </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">src/generated</directory>
+            <file>src/autoload.php</file>
+        </exclude>
+    </source>
+
     <coverage>
-        <report>
-            <html outputDirectory="_coverage"/>
-            <text outputFile="php://stdout"/>
-        </report>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
     </coverage>
 </phpunit>
